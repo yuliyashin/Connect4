@@ -3,6 +3,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -14,6 +15,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
@@ -22,17 +24,18 @@ import javax.swing.border.LineBorder;
 public class ConnectFourGame extends JFrame{
 	private static final int ROW = 6;
 	private static final int COL = 7;
-	private static final int FRAME_WIDTH = 840;
-	private static final int FRAME_HEIGHT =	750;
+	private static final int FRAME_WIDTH = 860;
+	private static final int FRAME_HEIGHT =	770;
 	private static final int BLOCK_DIMENSIONS = 120; // image size (height and width)
-	private static final int P1Score = 0;
-	private static final int P2Score = 0;
+	private static int P1Score = 0;
+	private static int P2Score = 0;
 
 	private JLabel[][] grid = new JLabel[ROW][COL];
 	private JLabel[] dropArray = new JLabel[COL];
 	private JPanel dropPanel;
 	private JPanel gridPanel;
 	private JPanel scorePanel;
+	private JPanel optionPanel;
 	private ImageIcon emptyCircle = new ImageIcon(this.getClass().getResource("/emptyCircle.png"));
 	private ImageIcon yellowCircle = new ImageIcon(this.getClass().getResource("/happyYellowCircle.png"));
 	private ImageIcon redCircle = new ImageIcon(this.getClass().getResource("/madRedCircle.png"));
@@ -45,14 +48,17 @@ public class ConnectFourGame extends JFrame{
 	private final ImageIcon PLAYER_ONE = yellowCircle;
 	private final ImageIcon PLAYER_TWO = redCircle;
 	private ImageIcon activePlayer = PLAYER_ONE;
+	
+	private JButton reset; 
 
 	ConnectFourGame(){
 		super("Connect 4!");
 		setLayout(new BorderLayout());
 		createComponents();
-		addMouseListener(new ButtonHandler());
+		addMouseListener(new myMouseListener());
 		add(gridPanel, BorderLayout.CENTER);
 		add(scorePanel, BorderLayout.NORTH);
+		add(optionPanel, BorderLayout.EAST);
 
 		//		wireComponenets();
 		setupFrame();
@@ -127,15 +133,15 @@ public class ConnectFourGame extends JFrame{
 			} else
 				break;
 		}
-//		System.out.printFor row: " + row_index + " col_index:  " + col_index + " | count2: "  + count2);
-		
+		//		System.out.printFor row: " + row_index + " col_index:  " + col_index + " | count2: "  + count2);
+
 		return count >= 4;
 	}
-	
+
 	private boolean isActivePlayer(int row_index, int col_index) {
 		return grid[row_index][col_index].getIcon() == activePlayer;
 	}
-	
+
 	private boolean checkTopLeftToBottomRight(int row_index, int col_index) {
 
 		int count = 1;
@@ -161,8 +167,8 @@ public class ConnectFourGame extends JFrame{
 			} else
 				break;
 		}
-//		System.out.print("For row: " + row_index + " col_index:  " + col_index + " | count2: "  + count2);
-		
+		//		System.out.print("For row: " + row_index + " col_index:  " + col_index + " | count2: "  + count2);
+
 		return count >= 4;
 	}
 
@@ -182,18 +188,26 @@ public class ConnectFourGame extends JFrame{
 
 		scorePanel = new JPanel();
 		scorePanel.setLayout(new GridLayout(1,4));
-		JLabel label1 = new JLabel("Player 1");
-		label1.setFont(font);
-		JLabel label2 = new JLabel("Player 2");
-		label2.setFont(font);
-		JLabel label3 = new JLabel(String.valueOf(P1Score));
-		JLabel label4 = new JLabel(String.valueOf(P2Score));
-		label1.setForeground(redColor);
-		label2.setForeground(yellowColor);
-		scorePanel.add(label1);
-		scorePanel.add(label3);
-		scorePanel.add(label2);
-		scorePanel.add(label4);
+		JLabel player1 = new JLabel("Player 1");
+		player1.setFont(font);
+		JLabel player2 = new JLabel("Player 2");
+		player2.setFont(font);
+		JLabel player1Score = new JLabel(String.valueOf(P1Score));
+		JLabel player2Score = new JLabel(String.valueOf(P2Score));
+		player1.setForeground(yellowColor);
+		player2.setForeground(redColor);
+		scorePanel.add(player1);
+		scorePanel.add(player2);
+		scorePanel.add(player1Score);
+		scorePanel.add(player2Score);
+		
+		optionPanel = new JPanel();
+		optionPanel.setLayout(new GridLayout(4,1));
+		reset = new JButton("Reset");
+		reset.addActionListener(new ButtonHandler());
+		optionPanel.add(reset);
+		
+		
 
 
 
@@ -226,7 +240,7 @@ public class ConnectFourGame extends JFrame{
 		}
 	}
 
-	class ButtonHandler implements MouseListener {
+	class myMouseListener implements MouseListener {
 
 
 		@Override
@@ -238,13 +252,29 @@ public class ConnectFourGame extends JFrame{
 			for (int i = (ROW - 1); i >= 0; i--) {
 				JLabel checkedSpot = grid[i][col];
 				if (checkedSpot.getIcon() == emptyCircle) {
-					boolean playerWon = checkIfWon(i, col);
-					System.out.print(playerWon);
+
 					if (activePlayer == PLAYER_ONE ) {
 						checkedSpot.setIcon(yellowCircle);
+						boolean playerWon = checkIfWon(i, col);
+						if (playerWon) {
+							P1Score++;
+							int option = JOptionPane.showConfirmDialog(null, "Player 1 Wins!", "Would you like to play again?", JOptionPane.YES_NO_OPTION);
+							if (option == JOptionPane.YES_OPTION) {
+								resetBoard();
+								
+							}
+						}
 						activePlayer = PLAYER_TWO;							
 					} else {
 						checkedSpot.setIcon(redCircle);
+						boolean playerWon = checkIfWon(i, col);
+						if (playerWon) {
+							P1Score++;
+							int option = JOptionPane.showConfirmDialog(getParent(), "Player 2 Wins!", "Would you like to play again?", JOptionPane.YES_NO_OPTION);
+							if (option == JOptionPane.YES_OPTION) {
+								resetBoard();
+							}
+						}
 						activePlayer = PLAYER_ONE;
 					}
 					return;
@@ -291,11 +321,35 @@ public class ConnectFourGame extends JFrame{
 
 
 	private void wireComponents() {
+	
+	}
+	
+	class ButtonHandler implements ActionListener{
 
-		ButtonHandler buttonHandler = new ButtonHandler();
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			System.out.print("i'm clicked!");
+			if (e.getSource() == reset) {
+				resetGame();
+			}
+			
+		}
+		
+		
+	}
+	
+	private void resetGame() {
+		resetScoreBoard();
+		resetBoard();
+	}
 
+	private void resetScoreBoard() {
+		P1Score = 0;
+		P2Score = 0;
+	}
 
-
+	private void resetBoard() {
+		new ConnectFourGame();
+//		fillGrid();
 	}
 }
-
