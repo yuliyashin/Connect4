@@ -110,46 +110,51 @@ public class ConnectFourGame extends JFrame{
 		}
 	}
 
-	//CHECK FOR WINNER
+
 	private boolean checkHorizontal(int row_index, int col_index){
 		ArrayList<Coord> coordinates = new ArrayList<>();
 		coordinates.add(new Coord(row_index, col_index));
-		//		int count = 1;
+		
 		for (int i = col_index - 1; i >= 0; i--) {
-			if (i >= 0 && isActivePlayer(row_index, i)) { /*grid[row_index][i].getIcon() == activePlayer) {*/
+			
+			if (i >= 0 && isActivePlayer(row_index, i)) {
 				coordinates.add(new Coord(row_index, i));
-				//				count++;
+				
 			} else {
+				
 				break; 
 			}
+			
 		}
 
 		for (int i = col_index + 1; i < COL; i++) {
-			if (i < COL && isActivePlayer(row_index, i)) { /*grid[row_index][i].getIcon() == activePlayer)*/ 
+			
+			if (i < COL && isActivePlayer(row_index, i)) {  
 				coordinates.add(new Coord(row_index, i));
-				//				count++;
+				
 			} else {
+				
 				break;
-			}			
+			}
+			
 		}
-		//		System.out.print("SIZE: " + coordinates.size()); //debug
+
 		if (winnerFound(coordinates)) {
 			indicateWinner(coordinates);
 		}
 
 		return (winnerFound(coordinates));
-		//		return (count >= 4);
 	}
 
 	private boolean checkVertical(int row_index, int col_index){
 		ArrayList<Coord> coordinates = new ArrayList<>();
+		
 		coordinates.add(new Coord(row_index, col_index));
-		//		int count = 1;
+
 		for (int i = row_index - 1; i >= 0; i--) {
 			if (i >= 0 && isActivePlayer(i, col_index)) {
 				coordinates.add(new Coord(i, col_index));
 			}
-			//				count++;
 			else {
 				break; 
 			}
@@ -168,29 +173,34 @@ public class ConnectFourGame extends JFrame{
 		}
 
 		return (winnerFound(coordinates));
-		//		return (count >= 4);
 	}
 
 	private boolean checkBottomLeftToTopRight(int row_index, int col_index){
 		ArrayList<Coord> coordinates = new ArrayList<>();
 		coordinates.add(new Coord(row_index, col_index));
+		
 		for (int j = 1; j < 4; j++) {
+			
 			boolean withinGrid = (row_index+j < ROW) && (col_index-j >= 0);
+			
 			if (withinGrid && isActivePlayer(row_index+j, col_index-j)) {	//southwest
 				coordinates.add(new Coord(row_index+j, col_index-j));
-				//				count++;
 
 			} else
 				break;
+			
 		}
 
 		for (int j = 1; j < 4; j++) {
+			
 			boolean withinGrid = (row_index-j >= 0) && (col_index+j < COL);
+			
 			if (withinGrid && isActivePlayer(row_index-j, col_index+j)) {	//northeast
 				coordinates.add(new Coord(row_index-j, col_index+j));
-				//				count++;
+				
 			} else
 				break;
+			
 		}
 
 		if (winnerFound(coordinates)) {
@@ -198,7 +208,6 @@ public class ConnectFourGame extends JFrame{
 		}
 
 		return (winnerFound(coordinates));
-		//		return (count >= 4);
 	}
 
 
@@ -206,22 +215,27 @@ public class ConnectFourGame extends JFrame{
 	private boolean checkTopLeftToBottomRight(int row_index, int col_index) {
 		ArrayList<Coord> coordinates = new ArrayList<>();
 		coordinates.add(new Coord(row_index, col_index));
-		//		int count = 1;
 
 		for (int j = 1; j < ROW; j++) {
+			
 			boolean withinGrid = (row_index-j >= 0) && (col_index-j >= 0);
+			
 			if (withinGrid && isActivePlayer(row_index - j, col_index - j)) { // northwest
 				coordinates.add(new Coord(row_index - j, col_index - j));
-				//				count++;
-			} else break;
+			
+			} else 
+				break;
+			
 		}
 
 		for (int j = 1; j < 4; j++) {
 			boolean withinGrid = (row_index + j < ROW) && (col_index + j < COL);
+			
 			if (withinGrid && isActivePlayer(row_index+j, col_index + j)) {		//southeast
 				coordinates.add(new Coord(row_index + j, col_index + j));
-				//				count++;
-			} else break;
+			
+			} else 
+				break;
 		}
 
 		if (winnerFound(coordinates)) {
@@ -229,7 +243,6 @@ public class ConnectFourGame extends JFrame{
 		}
 
 		return (winnerFound(coordinates));
-		//		return (count >= 4);
 	}
 
 	private boolean checkIfWon(int row, int col) {
@@ -241,7 +254,9 @@ public class ConnectFourGame extends JFrame{
 
 	private boolean checkIfDraw() {
 		for (int j = 0; j < ROW; j++) {
+			
 			for (int k = 0; k < COL; k++) {
+				
 				if (grid[j][k].getIcon() == emptyCircle) {
 					return false;
 				}
@@ -270,19 +285,20 @@ public class ConnectFourGame extends JFrame{
 		gridPanel.setBorder(new LineBorder(Color.YELLOW));
 		fillGrid();
 
-		//		Border border = BorderFactory.createLineBorder(Color.GRAY, 3); border
-
 		scorePanel = new JPanel();
 		scorePanel.setLayout(new GridLayout(1,4));
+		
 		JLabel player1 = new JLabel("Player 1");
 		player1.setFont(font);
-		//		player1.setBorder(border);
 		JLabel player2 = new JLabel("Player 2");
 		player2.setFont(font);
+		
 		JLabel player1Score = new JLabel(String.valueOf(P1Score));
 		JLabel player2Score = new JLabel(String.valueOf(P2Score));
+		
 		player1.setForeground(yellowColor);
 		player2.setForeground(redColor);
+		
 		scorePanel.add(player1);
 		scorePanel.add(player1Score);
 		scorePanel.add(player2);
@@ -290,6 +306,7 @@ public class ConnectFourGame extends JFrame{
 
 		optionPanel = new JPanel();
 		optionPanel.setLayout(new GridLayout(4,1));
+		
 		reset = new JButton("New Game");
 		reset.addActionListener(new ButtonHandler());
 		optionPanel.add(reset);
@@ -297,10 +314,9 @@ public class ConnectFourGame extends JFrame{
 
 	private void fillGrid() {
 		for (int j = 0; j < ROW; j++) {
+	
 			for (int k = 0; k < COL; k++) {
-				//				gridPanel.
 				grid[j][k] = new JLabel();
-				//				grid[j][k].addMouseListener(new highlighterListener());
 				grid[j][k].setIcon(emptyCircle);
 				grid[j][k].setOpaque(true);
 				gridPanel.add(grid[j][k]);
@@ -309,6 +325,7 @@ public class ConnectFourGame extends JFrame{
 	}
 	private void clearGrid() {
 		for (int j = 0; j < ROW; j++) {
+			
 			for (int k = 0; k < COL; k++) {
 				grid[j][k].setIcon(emptyCircle);
 				grid[j][k].setBorder(null);
@@ -323,21 +340,19 @@ public class ConnectFourGame extends JFrame{
 			int x = e.getX();
 			int y = e.getY();
 			int col = x / BLOCK_DIMENSIONS;
+			
 			for (int i = (ROW - 1); i >= 0; i--) {
+			
 				JLabel checkedSpot = grid[i][col];
-				boolean itsADraw = checkIfDraw();
-				if (itsADraw){
-					int option = JOptionPane.showConfirmDialog(null, "Nobody Wins! Would you like to play again?", "* It's a draw! *", JOptionPane.YES_NO_OPTION);
-					if (option == JOptionPane.YES_OPTION) {
-						resetBoard();
-					}
-				}
+				
 				if (checkedSpot.getIcon() == emptyCircle){
 					
 					if (activePlayer == PLAYER_ONE ) {
 						
 						checkedSpot.setIcon(yellowCircle);
+						
 						boolean playerWon = checkIfWon(i, col);
+						
 						if (playerWon) {
 							P1Score++;
 							int option = JOptionPane.showConfirmDialog(null, "Player 1 Wins! Would you like to play again?", "* We have a winner! *", JOptionPane.YES_NO_OPTION);
@@ -345,12 +360,27 @@ public class ConnectFourGame extends JFrame{
 								resetBoard();
 							}
 						}
+						
+						boolean itsADraw = checkIfDraw();
+						
+						if (itsADraw){
+							int option = JOptionPane.showConfirmDialog(null, "Nobody Wins! Would you like to play again?", "* It's a draw! *", JOptionPane.YES_NO_OPTION);
+							
+							if (option == JOptionPane.YES_OPTION) {
+								resetBoard();
+							}
+						}
+						
 						activePlayer = PLAYER_TWO;
 						return;
+						
 					} else {
 						
 						checkedSpot.setIcon(redCircle);
+
+
 						boolean playerWon = checkIfWon(i, col);
+						
 						if (playerWon) {
 							P2Score++;
 							int option = JOptionPane.showConfirmDialog(null, "Player 2 Wins! Would you like to play again?", "* We have a winner *", JOptionPane.YES_NO_OPTION);
@@ -358,6 +388,17 @@ public class ConnectFourGame extends JFrame{
 								resetBoard();
 							}
 						}
+						
+						boolean itsADraw = checkIfDraw();
+						
+						if (itsADraw){
+							int option = JOptionPane.showConfirmDialog(null, "Nobody Wins! Would you like to play again?", "* It's a draw! *", JOptionPane.YES_NO_OPTION);
+							
+							if (option == JOptionPane.YES_OPTION) {
+								resetBoard();
+							}
+						}
+
 						activePlayer = PLAYER_ONE;
 						return;
 					}
@@ -368,38 +409,18 @@ public class ConnectFourGame extends JFrame{
 
 		@Override
 		public void mousePressed(MouseEvent e) {
-
-
 		}
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
-			// TODO Auto-generated method stub
-
 		}
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
-			//						int x = e.getX();
-			//						int y = e.getY();
-			//						int col = x / BLOCK_DIMENSIONS;
-			//						
-			//						for (int i = 0; i < ROW; i++) {
-			//							Border border = BorderFactory.createLineBorder(Color.CYAN, 1);
-			//							grid[i][col].setBorder(border);
-			//						}
-
 		}
 
 		@Override
 		public void mouseExited(MouseEvent e) {
-			//						int x = e.getX();
-			//						int y = e.getY();
-			//						int col = x / BLOCK_DIMENSIONS;
-			//						
-			//						for (int i = 0; i < ROW; i++) {
-			//							grid[i][col - 1].setBorder(null);
-			//						}
 		}
 	}
 
@@ -408,7 +429,9 @@ public class ConnectFourGame extends JFrame{
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			System.out.print("i'm clicked!");
+			
 			if (e.getSource() == reset) {
+			
 				int confirmed = JOptionPane.showConfirmDialog(null,
 						"Are you sure you want to reset the game?", "Reset Game Message Box",
 						JOptionPane.YES_NO_OPTION);
@@ -420,21 +443,3 @@ public class ConnectFourGame extends JFrame{
 		}
 	}
 }
-
-//	class highlighterListener extends MouseAdapter {
-
-//		@Override
-//		public void mouseEntered(MouseEvent e) {
-//			int x = e.getX();
-//			int y = e.getY();
-//			System.out.print(x + " : " + y);
-//			
-//		}
-//
-//		@Override
-//		public void mouseExited(MouseEvent e) {
-//			// TODO Auto-generated method stub
-//			
-//		}
-
-//	}
