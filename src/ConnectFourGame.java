@@ -1,6 +1,7 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -13,6 +14,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -27,15 +31,19 @@ import javax.swing.border.LineBorder;
 
 public class ConnectFourGame extends JFrame{
 	//dimensions
-	private final int ROW = 6;
-	private final int COL = 7;
-	private final int FRAME_WIDTH = 960;
-	private final int FRAME_HEIGHT = 760;
-	private final int BLOCK_DIMENSIONS = 130; // image size (height and width)
+	private int ROW = 6; //default 13 is max
+	private int COL = 7; //default	
+	private final int BLOCK_DIMENSIONS = 60; // image size (height and width)
+	private final int FRAME_WIDTH = COL * BLOCK_DIMENSIONS;
+	private final int FRAME_HEIGHT = (ROW * BLOCK_DIMENSIONS) + 100;
 
+	//testing
+	Clip clip;
+
+	// game mode
+	private int gameMode;
 	private final int aiMode = 0;
 	private final int playerMode = 1;
-	private int gameMode;
 
 	// score variables
 	private static int P1Score = 0;
@@ -43,7 +51,7 @@ public class ConnectFourGame extends JFrame{
 	private static int AIScore = 0;
 
 	private JLabel[][] grid = new JLabel[ROW][COL];
-	private JLabel[] dropArray = new JLabel[COL];
+	private JLabel currentPlayer;
 	private JLabel player1;
 	private JLabel player2;
 	private JLabel playerAI;
@@ -51,37 +59,35 @@ public class ConnectFourGame extends JFrame{
 	private JLabel player2Score;
 	private JLabel playerAIScore;
 
-	private JPanel dropPanel;
 	private JPanel gridPanel;
 	private JPanel playerPanel;
-	private JPanel optionPanel;
-	// colors
-	private Color yellowColor = Color.YELLOW;
-	private Color redColor = Color.RED;
-	private Color blueColor = Color.BLUE;
-	private Color greenColor = Color.GREEN;
+	private JPanel scorePanel;
+	private JPanel newGamePanel;
 
 	//font 
-	private Font font = new Font("Courier", Font.BOLD, 15);
+	private Font playerTurnFont = new Font("Courier", Font.ITALIC, 30);
+	private Font newGameFont = new Font("Courier", Font.BOLD, 15);
+	private Font font = new Font("Courier", Font.BOLD, 13);
 
 	// image icons
 	private ImageIcon emptyCircle = new ImageIcon(this.getClass().getResource("/emptyCircle.png"));
 	private ImageIcon yellowCircle = new ImageIcon(this.getClass().getResource("/happyYellowCircle.png"));
 	private ImageIcon redCircle = new ImageIcon(this.getClass().getResource("/madRedCircle.png"));
 	private ImageIcon greenCircle = new ImageIcon(this.getClass().getResource("/greenCircle.png"));
-	private final ImageIcon PLAYER_ONE = yellowCircle;
-	private final ImageIcon PLAYER_TWO = redCircle;
-	private final ImageIcon PLAYER_AI = greenCircle; 
+	private ImageIcon PLAYER_ONE = yellowCircle;
+	private ImageIcon PLAYER_TWO = redCircle;
+	private ImageIcon PLAYER_AI = greenCircle; 
 	private ImageIcon activePlayer = PLAYER_ONE;
 
 	private JButton reset;
-	private Timer t;
+
 	private Border winnerBorder = new LineBorder(Color.BLACK, 5);
 	private Border player1Border = new LineBorder(Color.YELLOW, 3);
 	private Border player2Border = new LineBorder(Color.RED, 3);
 	private Border playerAIBorder = new LineBorder(Color.GREEN, 3);
 
 	ConnectFourGame(){
+		setTitle("Connect 4!");
 		setLayout(new BorderLayout());
 		addMouseListener(new myMouseListener());
 
@@ -109,9 +115,9 @@ public class ConnectFourGame extends JFrame{
 	}
 
 	private void addComponents() {
-		add(gridPanel, BorderLayout.CENTER);
 		add(playerPanel, BorderLayout.NORTH);
-		add(optionPanel, BorderLayout.EAST);
+		add(gridPanel, BorderLayout.CENTER);
+		add(newGamePanel, BorderLayout.SOUTH);
 	}
 
 	private void setupFrame() {
@@ -323,32 +329,35 @@ public class ConnectFourGame extends JFrame{
 		fillGrid();
 
 		playerPanel = new JPanel();
-		playerPanel.setLayout(new GridLayout(1,4));
+		playerPanel.setLayout(new FlowLayout());
 
-		JLabel currentlyPlaying = new JLabel("  Currently Playing:");
-		currentlyPlaying.setFont(font);
+		currentPlayer = new JLabel("Player's turn. . .");
+		currentPlayer.setFont(playerTurnFont);
+		currentPlayer.setBorder(player1Border);
 
-		player1 = new JLabel("Player 1");
+		player1 = new JLabel("     Player:  " );
 		player1.setFont(font);
-		player1.setBorder(player1Border);
-		playerAI = new JLabel("Player AI  ");
+		player1Score = new JLabel("     " + String.valueOf(P1Score) + " ");
+		player1Score.setFont(font);
+		playerAI = new JLabel("      AI : " );
 		playerAI.setFont(font);
+		playerAIScore = new JLabel("     " + String.valueOf(AIScore) + " ");
+		playerAIScore.setFont(font);
 
-		player1Score = new JLabel(String.valueOf(P1Score));
-		playerAIScore = new JLabel(String.valueOf(AIScore));
-
-		playerPanel.add(currentlyPlaying);
+		playerPanel.add(currentPlayer);
 		playerPanel.add(player1);
+		playerPanel.add(player1Score);
 		playerPanel.add(playerAI);
+		playerPanel.add(playerAIScore);
 
-		optionPanel = new JPanel();
-		optionPanel.setLayout(new GridLayout(4,1));
-
+		//		reset = new JButton("<html> New<br />Game</html>");
 		reset = new JButton("New Game");
-		reset.setFont(font);
+		reset.setFont(newGameFont);
 		reset.addActionListener(new ButtonHandler());
 
-		optionPanel.add(reset);
+		newGamePanel = new JPanel();
+		newGamePanel.setLayout(new FlowLayout());
+		newGamePanel.add(reset);	
 	}
 
 	//	sets up game for Player versus Player
@@ -359,32 +368,35 @@ public class ConnectFourGame extends JFrame{
 		fillGrid();
 
 		playerPanel = new JPanel();
-		playerPanel.setLayout(new GridLayout(1,4));
+		playerPanel.setLayout(new FlowLayout());
 
-		JLabel currentlyPlaying = new JLabel("  Currently Playing:");
-		currentlyPlaying.setFont(font);
+		currentPlayer = new JLabel("Player 1's turn. . .");
+		currentPlayer.setFont(playerTurnFont);
+		currentPlayer.setBorder(player1Border);
 
-		player1 = new JLabel("Player 1");
+		player1 = new JLabel("      Player one:  " );
 		player1.setFont(font);
-		player1.setBorder(player1Border);
-		player2 = new JLabel("Player 2  ");
+		player1Score = new JLabel("     " + String.valueOf(P1Score) + " ");
+		player1Score.setFont(font);
+		player2 = new JLabel("      Player two: " );
 		player2.setFont(font);
+		player2Score = new JLabel("     " + String.valueOf(P2Score) + " ");
+		player2Score.setFont(font);
 
-		player1Score = new JLabel(String.valueOf(P1Score));
-		player2Score = new JLabel(String.valueOf(P2Score));
-
-		playerPanel.add(currentlyPlaying);
+		playerPanel.add(currentPlayer);
 		playerPanel.add(player1);
+		playerPanel.add(player1Score);
 		playerPanel.add(player2);
+		playerPanel.add(player2Score);
 
-		optionPanel = new JPanel();
-		optionPanel.setLayout(new GridLayout(4,1));
+		newGamePanel = new JPanel();
+		newGamePanel.setLayout(new FlowLayout());
 
 		reset = new JButton("New Game");
-		reset.setFont(font);
+		reset.setFont(newGameFont);
 		reset.addActionListener(new ButtonHandler());
 
-		optionPanel.add(reset);
+		newGamePanel.add(reset);
 	}
 
 	private void fillGrid() {
@@ -444,8 +456,8 @@ public class ConnectFourGame extends JFrame{
 								}
 							}
 							//						player1.setFont(~Font.BOLD));;
-							player1.setBorder(null);
-							player2.setBorder(player2Border);
+							currentPlayer.setBorder(player2Border);
+							currentPlayer.setText("Player 2's turn. . .");
 							activePlayer = PLAYER_TWO;
 
 							return;
@@ -477,8 +489,8 @@ public class ConnectFourGame extends JFrame{
 							}
 
 							activePlayer = PLAYER_ONE;
-							player2.setBorder(null);
-							player1.setBorder(player1Border);
+							currentPlayer.setBorder(player1Border);
+							currentPlayer.setText("Player 1's turn. . .");
 							return;
 						}
 					}
@@ -513,51 +525,27 @@ public class ConnectFourGame extends JFrame{
 									resetBoard();
 								}
 							}
-							//						player1.setFont(~Font.BOLD));;
-							player1.setBorder(null);
-							playerAI.setBorder(playerAIBorder);
-							activePlayer = PLAYER_AI;
 
-							
+							currentPlayer.setBorder(playerAIBorder);
+							currentPlayer.setText("AI's turn. . .");
+							activePlayer = PLAYER_AI;
 
 							if (activePlayer == PLAYER_AI) {
 								int randomTime = ((int)(Math.random() * (1000)));
 								new java.util.Timer().schedule( 
-								        new java.util.TimerTask() {
-								            @Override
-								            public void run() {
-								                aiMove();
-								            }
-								        }, 
-								        randomTime 
-								);
-						 
-//								playerWon = checkIfWon(i, col);
-//								itsADraw = checkIfDraw();
-//								
-//								if (playerWon) {
-//									AIScore++;
-//									playerAI.setText(String.valueOf(AIScore));
-//
-//									int option = JOptionPane.showConfirmDialog(null, "Player 1 Wins! Would you like to play again?", "* We have a winner! *", JOptionPane.YES_NO_OPTION);
-//									if (option == JOptionPane.YES_OPTION) {
-//										resetBoard();
-//									}
-//								}
-//
-//								if (itsADraw){
-//									int option = JOptionPane.showConfirmDialog(null, "Nobody Wins! Would you like to play again?", "* It's a draw! *", JOptionPane.YES_NO_OPTION);
-//
-//									if (option == JOptionPane.YES_OPTION) {
-//										resetBoard();
-//									}
-//								}
+										new java.util.TimerTask() {
+											@Override
+											public void run() {
+												aiMove();
+											}
+										}, 
+										randomTime 
+										);
 							}
 
 							return;
 
 						}
-						//					}
 					}
 				}
 			}
@@ -599,7 +587,6 @@ public class ConnectFourGame extends JFrame{
 				System.out.println();
 				JLabel checkedSpot = grid[k][j];
 				if (checkedSpot.getIcon() == emptyCircle) {
-//					System.out.print("empty!!" + ("Ro")"
 					possibleAIMoves.add(new Coord(k,j)); 
 					index++;
 					break;
@@ -613,10 +600,10 @@ public class ConnectFourGame extends JFrame{
 		grid[row][col].setIcon(PLAYER_AI);
 		boolean playerWon = checkIfWon(row, col);
 		boolean itsADraw = checkIfDraw();
-		
+
 		if (playerWon) {
 			AIScore++;
-//			playerAI.setText(String.valueOf(AIScore));
+			playerAIScore.setText(String.valueOf(AIScore));
 			int option = JOptionPane.showConfirmDialog(null, "AI Wins! Would you like to play again?", "* We have a winner! *", JOptionPane.YES_NO_OPTION);
 			if (option == JOptionPane.YES_OPTION) {
 				resetBoard();
@@ -630,10 +617,36 @@ public class ConnectFourGame extends JFrame{
 				resetBoard();
 			}
 		}
-		
-		playerAI.setBorder(null);
-		player1.setBorder(player1Border);
+
+		currentPlayer.setBorder(player1Border);
+		currentPlayer.setText("Player's turn. . .");
 		activePlayer = PLAYER_ONE;
+	}
+
+	private void playWinningSound(){
+
+	}
+
+	private void doPlay(final String url) {
+		try {
+			stopPlay();
+			AudioInputStream inputStream = AudioSystem
+					.getAudioInputStream(getClass().getResourceAsStream(url));
+			clip = AudioSystem.getClip();
+			clip.open(inputStream);
+			clip.start();
+		} catch (Exception e) {
+			stopPlay();
+			System.err.println(e.getMessage());
+		}
+	}
+	
+	private void stopPlay(){
+		if (clip != null) {
+			clip.stop();
+			clip.close();
+			clip = null;
+		}
 	}
 
 	class ButtonHandler implements ActionListener{
@@ -643,7 +656,7 @@ public class ConnectFourGame extends JFrame{
 			if (e.getSource() == reset) {
 
 				int confirmed = JOptionPane.showConfirmDialog(null,
-						"Are you sure you want to reset the game?", "Reset Game Message Box",
+						"Are you sure you want to reset the game?", "Warning!",
 						JOptionPane.YES_NO_OPTION);
 
 				if (confirmed == JOptionPane.YES_OPTION) {
